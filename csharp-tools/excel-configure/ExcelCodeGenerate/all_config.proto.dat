@@ -1,0 +1,16 @@
+
+�
+test_python_config�
+message test_python_config
+{
+	message skill
+	{
+		int32 id = 1; //技能id
+		int32 rate = 2; //技能概率
+	}
+	int32 id = 1; //索引
+	string count = 2; //数量
+	repeated skill skill_info_list = 3;
+	repeated int32 value_list = 4; //值
+}
+43fb77f624a0e43d142a149b66eda32

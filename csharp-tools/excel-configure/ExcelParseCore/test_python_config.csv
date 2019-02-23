@@ -1,0 +1,4 @@
+﻿索引,数量,技能1id,技能1概率,技能2id,技能2概率,值1,值2
+id,count,skill#id,skill#rate,skill#id,skill#rate,value,value
+INT,STRING,ST_ARRAY#INT$1,ST_ARRAY#INT$1,ST_ARRAY#INT$2,ST_ARRAY#INT$2,INT_ARRAY$1,INT_ARRAY$2
+1,2,3,4,5,6,7,98

@@ -1,0 +1,17 @@
+运行环境：.NET Core 2.0运行库
+编译依赖：
+1：.NET Core 2.0
+2：Aspose.Cells 18.11.0
+3：protobuf 3.6.1
+4：IronPython 2.7.9
+4：Newtonsoft.Json 12.0.1
+
+文件说明：
+excel_parse				解析程序和python所在目录
+excel_parse/PublishOutput		.net程序目录
+excel_parse/python			python目录
+excel_parse/python/google		protobuf的python库
+excel_parse/python/Lib			IronPython2.7的python库
+excel_parse/python/PythonParse.py	主要解析数据的python文件
+excel_parse/python/template_base_pb2.py proto分析python文件
+excel_parse/python/all_config_pb2.py	excel生成的protobuf结构的python文件

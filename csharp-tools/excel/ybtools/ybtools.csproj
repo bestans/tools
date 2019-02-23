@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <ApplicationIcon />
+    <StartupObject />
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspose.Cells" Version="18.11.0" />
+    <PackageReference Include="CsvTools.Excel" Version="1.0.2" />
+    <PackageReference Include="Microsoft.Office.Interop.Excel" Version="15.0.4795.1000" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Aspose.Cells">
+      <HintPath>..\..\..\..\export\Aspose.Cells.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

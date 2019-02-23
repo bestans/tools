@@ -1,0 +1,20 @@
+
+š
+test‘
+message test
+{
+	message repu
+	{
+		int32 id = 1; //ÉùÍûid
+		float rate = 2; //ÉùÍû¸ÅÂÊ
+	}
+	message skill
+	{
+		int32 id = 1; //¼¼ÄÜ1id
+		int32 rate = 2; //¼¼ÄÜ1¸ÅÂÊ
+	}
+	int32 id = 1; //Ë÷Òı
+	bytes name = 2; //Ãû×Ö
+	repu repu_info = 3;
+	repeated skill skill_info_list = 4;
+}

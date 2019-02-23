@@ -1,0 +1,10 @@
+{
+	"dataPath" : "output/",
+	"protoPath" : "output/",
+	"protoDataPath" : "output/",
+	"excelPath" : "./",
+	"csvPath" : "./",
+	"excelDataPath" : "output/",
+	"ignoreFiles" : [ "aaa", "bbb" ],
+	"rootDir" : "./",
+}

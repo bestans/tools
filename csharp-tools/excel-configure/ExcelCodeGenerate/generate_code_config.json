@@ -1,0 +1,5 @@
+{
+	"protoDataPath" : "all_config.proto.dat",
+	"dotnetCodeTemplatePath" : "ConfigManager.cs.Template",
+	"dotnetCodePath" : "ConfigManager.cs",
+}
