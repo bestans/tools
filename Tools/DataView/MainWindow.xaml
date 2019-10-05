@@ -1,0 +1,25 @@
+﻿<Window x:Class="DataView.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DataView"
+        mc:Ignorable="d"
+        Title="MainWindow" Width="800" Height="500" VerticalAlignment="Top" SizeChanged="Window_SizeChanged" >
+    <DockPanel Name="MyDock" LastChildFill="False" Margin="0,0,0,-4" SizeChanged="DockPanel_SizeChanged">
+        <DockPanel Width="225">
+            <DockPanel Height="28" DockPanel.Dock="Top">
+                <TextBox Name="SearchText" Width="100" HorizontalAlignment="Left"/>
+                <ComboBox Name="SearchSelect" Width="75" HorizontalAlignment="Left" SelectedIndex="0">
+                    <ComboBoxItem>xxxxx</ComboBoxItem>
+                    <ComboBoxItem>yyyyy</ComboBoxItem>
+                    <ComboBoxItem>zzzzz</ComboBoxItem>
+                </ComboBox>
+                <Button Click="ButtonSearchClick" DockPanel.Dock="Top">Search</Button>
+            </DockPanel>
+            <TreeView Name="Mulu"/>
+        </DockPanel>
+        <TabControl Name="TabContent" Height="470" Tag="100" DockPanel.Dock="Top">
+        </TabControl>
+    </DockPanel>
+</Window>
