@@ -99,7 +99,7 @@ namespace DataView
                 item.Header = content.header;
                 item.ToolTip = content.header;
             }
-            item.FontSize = 13;
+            item.FontSize = MainConfig.Instance.tableFontSize;
             DataGrid data = new DataGrid();
             //让DataUnit不会自动生成列
             data.AutoGenerateColumns = false;

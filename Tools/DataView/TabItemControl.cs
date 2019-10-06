@@ -15,6 +15,8 @@ namespace DataView
         public List<UCTabItemWithClose> rightTabs = new List<UCTabItemWithClose>();
         private TabControl m_Parent;
         private int SWITCH_COUNT = 0;
+        private bool isMainMulu = true;
+        private List<TreeViewItem> mainMulu;
 
         //数据页宽度
         public static int TABLE_MAX_WIDTH = 100;
@@ -118,7 +120,7 @@ namespace DataView
                 return;
             }
             var criticalCount = (int)((tabMaxWidth - MainConfig.Instance.tableItemExtraWidth) / MainConfig.Instance.tableItemWidth);
-            if (m_Parent.Items.Count >= criticalCount)
+            if (m_Parent.Items.Count + leftTabs.Count + rightTabs.Count - SWITCH_COUNT > criticalCount)
             {
                 if (SWITCH_COUNT <= 0)
                 {
@@ -126,11 +128,22 @@ namespace DataView
                     m_Parent.Items.Add(UCTabItemWithClose.NewItem(null, TAB_ITEM.RIGHT_ARROW));
                     SWITCH_COUNT = 2;
                 }
+            } else
+            {
+                if (SWITCH_COUNT > 0)
+                {
+                    m_Parent.Items.RemoveAt(m_Parent.Items.Count - 1);
+                    m_Parent.Items.RemoveAt(m_Parent.Items.Count - 1);
+                    SWITCH_COUNT = 0;
+                }
+            }
 
-                criticalCount = (int)(tabMaxWidth - MainConfig.Instance.tableArrowItemWidth * 2 - MainConfig.Instance.tableItemExtraWidth) / MainConfig.Instance.tableItemWidth;
-                if (criticalCount <= 0)
-                    criticalCount = 0;
-                var removeCount = m_Parent.Items.Count - criticalCount - 2;
+            criticalCount = (int)(tabMaxWidth - MainConfig.Instance.tableArrowItemWidth * SWITCH_COUNT - MainConfig.Instance.tableItemExtraWidth) / MainConfig.Instance.tableItemWidth;
+            if (criticalCount <= 0)
+                criticalCount = 0;
+            if (m_Parent.Items.Count - SWITCH_COUNT > criticalCount)
+            {
+                var removeCount = m_Parent.Items.Count - criticalCount - SWITCH_COUNT;
                 for (int i = 0; i < removeCount; ++i)
                 {
                     var removeItem = (UCTabItemWithClose)m_Parent.Items[0];
@@ -140,14 +153,7 @@ namespace DataView
             }
             else
             {
-                if (SWITCH_COUNT > 0)
-                {
-                    m_Parent.Items.RemoveAt(m_Parent.Items.Count - 1);
-                    m_Parent.Items.RemoveAt(m_Parent.Items.Count - 1);
-                    SWITCH_COUNT = 0;
-                }
-
-                var maxRemoveCount = criticalCount - m_Parent.Items.Count;
+                var maxRemoveCount = criticalCount + SWITCH_COUNT - m_Parent.Items.Count;
                 for (int i = leftTabs.Count - 1; i >= 0 && maxRemoveCount > 0; --i, --maxRemoveCount)
                 {
                     m_Parent.Items.Insert(0, leftTabs[i]);
@@ -161,6 +167,38 @@ namespace DataView
                 }
             }
             AjustTabSelect();
+        }
+
+        //搜索
+        public void SearchText(string text)
+        {
+            if (text == null || text.Length == 0)
+            {
+                if (!isMainMulu && mainMulu != null)
+                {
+                    win.Mulu.ItemsSource = mainMulu;
+                    isMainMulu = true;
+                }
+            } else
+            {
+                if (isMainMulu)
+                {
+                    mainMulu = (List<TreeViewItem>)win.Mulu.ItemsSource;
+                    isMainMulu = false;
+                }
+
+                var itemList = new List<TreeViewItem>();
+                for (int i = 0; i < 10; ++i)
+                {
+                    var titem = new TreeViewItem() { Header = "item" + i, IsExpanded = true, Visibility = Visibility.Visible, FontSize = MainConfig.Instance.muluFontSize };
+                    var son = new TreeViewItem() { Header = "item_sonsssssssssssssssssssssssssssssssssssss" + i, IsExpanded = true, FontSize = MainConfig.Instance.muluFontSize };
+                    var son_son = new TreeViewItem() { Header = "xx_item_sonsssssssssssssssssssssssssssssssssssss" + i, IsExpanded = true, FontSize = MainConfig.Instance.muluFontSize };
+                    son.Items.Add(son_son);
+                    titem.Items.Add(son);
+                    itemList.Add(titem);
+                }
+                win.Mulu.ItemsSource = itemList;
+            }
         }
     }
 }

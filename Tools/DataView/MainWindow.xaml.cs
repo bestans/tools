@@ -48,6 +48,9 @@ namespace DataView
             SearchSelect.Items.Clear();
             SearchSelect.ItemsSource = MainConfig.Instance.searchMenus;
             SearchSelect.SelectedIndex = 0;
+
+            this.MinWidth = MainConfig.Instance.winMinWidth;
+            this.MinHeight = MainConfig.Instance.winMinHeight;
         }
 
         public void InitTestView()
@@ -55,6 +58,7 @@ namespace DataView
             int fontSize = 15;
             Mulu.Items.Clear();
             Mulu.Visibility = Visibility.Visible;
+            var itemList = new List<TreeViewItem>();
             for (int i = 0; i < 50; ++i)
             {
                 var titem = new TreeViewItem() { Header = "item" + i, IsExpanded = false, Visibility = Visibility.Visible, FontSize= fontSize };
@@ -62,8 +66,9 @@ namespace DataView
                 var son_son = new TreeViewItem() { Header = "xx_item_sonsssssssssssssssssssssssssssssssssssss" + i, IsExpanded = false, FontSize = fontSize };
                 son.Items.Add(son_son);
                 titem.Items.Add(son);
-                Mulu.Items.Add(titem);
+                itemList.Add(titem);
             }
+            Mulu.ItemsSource = itemList;
         }
 
         private void InitTableItem()
@@ -84,7 +89,14 @@ namespace DataView
 
         private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-
+            if (Height < MinHeight)
+            {
+                Height = MinHeight;
+            }
+            if (Width < MinWidth)
+            {
+                Width = MinWidth;
+            }
         }
 
         public void ShowMessageBox(string text)
@@ -94,9 +106,35 @@ namespace DataView
 
         private void ButtonSearchClick(object sender, RoutedEventArgs e)
         {
-            string text = SearchText.Text;
+            tabCtrl.SearchText(SearchText.Text);
+        }
 
-            ShowMessageBox(text);
+        private void SearchText_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                //回车
+                tabCtrl.SearchText(SearchText.Text);
+            }
+        }
+
+        private void TabContent_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.AddedItems.Count <= 0) return;
+
+            var addItem = (UCTabItemWithClose)e.AddedItems[0];
+            if (addItem.itemType != TAB_ITEM.CONTENT)
+            {
+                if (e.RemovedItems.Count > 0)
+                {
+                    var removeItem = (UCTabItemWithClose)e.RemovedItems[0];
+                    removeItem.IsSelected = true;
+                }
+                else
+                {
+                    TabContent.SelectedIndex = -1;
+                }
+            }
         }
     }
 }

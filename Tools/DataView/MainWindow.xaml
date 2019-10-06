@@ -5,11 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DataView"
         mc:Ignorable="d"
-        Title="MainWindow" Width="800" Height="500" VerticalAlignment="Top" SizeChanged="Window_SizeChanged" >
+        Title="DataView" Width="1000" Height="600" VerticalAlignment="Top" SizeChanged="Window_SizeChanged" >
     <DockPanel Name="MyDock" LastChildFill="False" Margin="0,0,0,-4" SizeChanged="DockPanel_SizeChanged">
         <DockPanel Width="225">
             <DockPanel Height="28" DockPanel.Dock="Top">
-                <TextBox Name="SearchText" Width="100" HorizontalAlignment="Left"/>
+                <TextBox Name="SearchText" Width="100" HorizontalAlignment="Left" KeyDown="SearchText_KeyDown"/>
                 <ComboBox Name="SearchSelect" Width="75" HorizontalAlignment="Left" SelectedIndex="0">
                     <ComboBoxItem>xxxxx</ComboBoxItem>
                     <ComboBoxItem>yyyyy</ComboBoxItem>
@@ -19,7 +19,7 @@
             </DockPanel>
             <TreeView Name="Mulu"/>
         </DockPanel>
-        <TabControl Name="TabContent" Height="470" Tag="100" DockPanel.Dock="Top">
+        <TabControl Name="TabContent" Height="470" DockPanel.Dock="Top" SelectionChanged="TabContent_SelectionChanged">
         </TabControl>
     </DockPanel>
 </Window>

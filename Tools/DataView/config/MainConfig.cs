@@ -27,6 +27,10 @@ namespace DataView
         public int winMinWidth;
         //主界面最小高度
         public int winMinHeight;
+        //目录字体大小
+        public int muluFontSize;
+        //页签字体大小
+        public int tableFontSize;
 
         public class GridColomnConfig : BaseLuaConfig
         {

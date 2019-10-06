@@ -23,9 +23,13 @@ local config =
 	--数据页签余留宽度
 	tableItemExtraWidth = 5,
 	--主界面最小宽度
-	winMinWidth = 200,
+	winMinWidth = 300,
 	--主界面最小高度
 	winMinHeight = 100,
+	--目录字体大小
+	muluFontSize = 15,
+	--页签字体大小
+	tableFontSize = 13,
 }
 
 return config
