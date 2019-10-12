@@ -7,6 +7,6 @@ namespace DataGenerate
 {
     public class TableDataConfig : BaseLuaSingleton<TableDataConfig>
     {
-        public Dictionary<string, int> tableIndexMap;
+        public Dictionary<string, int> idspaceMap;
     }
 }

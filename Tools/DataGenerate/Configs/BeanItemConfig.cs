@@ -22,5 +22,13 @@ namespace DataGenerate
         [LuaParam(policy = LuaParamPolicy.OPTIONAL)]
         public int listSize;
         public string alias;
+
+        protected override void AfterLoad()
+        {
+            if (isList && listSize <= 0)
+            {
+                throw new Exception("list size must > 0");
+            }
+        }
     }
 }

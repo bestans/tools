@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Bestan.Common;
 
 namespace DataGenerate
 {
@@ -13,28 +14,67 @@ namespace DataGenerate
         public TableUnitWrap(TableUnitConfig tableUnit, string configName)
         {
             this.tableUnit = tableUnit;
-            this.configName = configName;
+            this.configName = configName; 
         }
     }
     public class TableLuaDefine
     {
         public static TableLuaDefine Instance = new TableLuaDefine();
 
-        private TableConfig common;
+        //通用table定义map
         private Dictionary<string, TableUnitConfig> commonTableMap = new Dictionary<string, TableUnitConfig>();
+        //所有table定义map
         private Dictionary<string, TableUnitWrap> allTableUnitMap = new Dictionary<string, TableUnitWrap>();
+        //所有config定义map
         private Dictionary<string, TableConfig> allTableConfigMap = new Dictionary<string, TableConfig>();
 
         private static readonly string LINE_SEP = "\n";
         private static readonly string TAB_SEP = "	";
+
         public void Init()
         {
+            //载入基础配置
+            LuaConfigs.LoadSingleConfig<TableGlobalConfig>("global.lua");
+            //载入数据配置
+            LuaConfigs.LoadSingleConfig<TableDataConfig>(TableGlobalConfig.Instance.dataConfigPath);
+            //载入excel属性配置
+            LuaConfigs.LoadSingleConfig<ExcelConfig>(TableGlobalConfig.Instance.excelPropConfigPath);
 
+            //通用表格bean、enum配置
+            var commonTable = LuaConfigs.LoadSingleConfig<TableConfig>(TableGlobalConfig.Instance.GetCommonConfigPath());
+            AddCommonTableConfig(commonTable);
+            //自定义表格配置
+            foreach (var customTableName in TableGlobalConfig.Instance.customConfigs)
+            {
+                var customTable = LuaConfigs.LoadSingleConfig<TableConfig>(TableGlobalConfig.Instance.tableLuaDefinePath + customTableName);
+                AddTableConfig(customTable);
+            }
         }
 
-        private void LoadCommon()
+        /// <summary>
+        /// 生成excel
+        /// </summary>
+        public void ToolGenerateExcel()
         {
+            foreach (var it in allTableConfigMap)
+            {
+                foreach (var table in it.Value.tables)
+                {
+                    string path = TableGlobalConfig.Instance.tableExcelRootPath + "/" + it.Value.configAlias + "/" + table.alias + ".elsx";
+                    ExcelMan.Instance.InitExcel(table, path);
+                }
+            }
+        }
 
+        /// <summary>
+        /// 生成proto文件
+        /// </summary>
+        public void ToolGenerateProto()
+        {
+            foreach (var it in allTableConfigMap)
+            {
+                GenerateOneProto(it.Value);
+            }
         }
 
         public static bool IsBaseType(string typeName)
@@ -54,18 +94,17 @@ namespace DataGenerate
             }
             AddTableConfig(commonTable);
         }
-        private void AddTableConfig(TableConfig tableConfig)
-        {
-            allTableConfigMap.Add(tableConfig.configName, tableConfig);
-        }
 
-        private void CheckTableConfig(TableConfig tableConfig)
+        private void AddTableConfig(TableConfig tableConfig)
         {
             if (allTableConfigMap.ContainsKey(tableConfig.configName))
             {
-                //重复的表格配置
+                //重复的配置
                 throw new Exception(string.Format("CheckTableConfig:duplicat config name({0}) with common config", tableConfig.configName));
             }
+            //添加配置
+            allTableConfigMap.Add(tableConfig.configName, tableConfig);
+
             var tempMap = new Dictionary<string, TableUnitConfig>();
             foreach (var it in tableConfig.tables)
             {
@@ -74,6 +113,7 @@ namespace DataGenerate
                     //重复的表格名称
                     throw new Exception(string.Format("CheckTableConfig:duplicate table name({0});configName1={1},configName2={2}", it.name, tableConfig.configName, wrapConfig.configName));
                 }
+
                 var tempSectionItemSet = new HashSet<string>();
                 foreach (TableSection sectionItem in it.items)
                 {
@@ -100,18 +140,24 @@ namespace DataGenerate
                 }
                 allTableUnitMap.Add(it.name, new TableUnitWrap(it, tableConfig.configName));
                 tempMap.Add(it.name, it);
+
+                it.Init();
             }
         }
 
-        private void GenerateAllConfigProto()
+        public TableUnitConfig GetItemTableUnit(string name)
         {
-
+            if (allTableUnitMap.TryGetValue(name, out TableUnitWrap value))
+            {
+                return value.tableUnit;
+            }
+            return null;
         }
 
         private void GenerateOneProto(TableConfig config)
         {
             string path = TableGlobalConfig.Instance.tableProtoPath;
-            using (var file = new FileStream(path, FileMode.Create))
+            using (var file = new FileStream(path + config.configName + ".proto", FileMode.Create))
             {
                 StringBuilder ss = new StringBuilder();
                 foreach (var it in config.tables)
