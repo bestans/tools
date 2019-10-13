@@ -34,7 +34,7 @@ namespace DataGenerate
         public void Init()
         {
             //载入基础配置
-            LuaConfigs.LoadSingleConfig<TableGlobalConfig>("global.lua");
+            LuaConfigs.LoadSingleConfig<TableGlobalConfig>("run_config/global.lua");
             //载入数据配置
             LuaConfigs.LoadSingleConfig<TableDataConfig>(TableGlobalConfig.Instance.dataConfigPath);
             //载入excel属性配置
@@ -46,7 +46,7 @@ namespace DataGenerate
             //自定义表格配置
             foreach (var customTableName in TableGlobalConfig.Instance.customConfigs)
             {
-                var customTable = LuaConfigs.LoadSingleConfig<TableConfig>(TableGlobalConfig.Instance.tableLuaDefinePath + customTableName);
+                var customTable = LuaConfigs.LoadSingleConfig<TableConfig>(TableGlobalConfig.Instance.tableLuaDefinePath + customTableName + ".lua");
                 AddTableConfig(customTable);
             }
         }
@@ -58,9 +58,17 @@ namespace DataGenerate
         {
             foreach (var it in allTableConfigMap)
             {
+                string dir = TableGlobalConfig.Instance.tableExcelRootPath + "\\" + it.Value.configAlias;
+                
+                if (!Directory.Exists(dir))
+                {
+                    Directory.CreateDirectory(dir);
+                }
                 foreach (var table in it.Value.tables)
                 {
-                    string path = TableGlobalConfig.Instance.tableExcelRootPath + "/" + it.Value.configAlias + "/" + table.alias + ".elsx";
+                    if (table.type != TAB_TYPE.TABLE)
+                        continue;
+                    string path = dir + "\\" + table.alias + ".xlsx";
                     ExcelMan.Instance.InitExcel(table, path);
                 }
             }
@@ -79,7 +87,7 @@ namespace DataGenerate
 
         public static bool IsBaseType(string typeName)
         {
-            return Enum.TryParse<BASE_TYPE>(typeName, out BASE_TYPE ret);
+            return TableGlobalConfig.Instance.baseTypes.IndexOf(typeName) >= 0;
         }
 
         /// <summary>

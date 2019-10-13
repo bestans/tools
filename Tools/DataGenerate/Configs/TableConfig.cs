@@ -6,17 +6,6 @@ using Bestan.Common;
 
 namespace DataGenerate
 {
-    public enum BASE_TYPE
-    {
-        FLOAT,
-        DOUBLE,
-        INT,
-        LONG,
-        SHORT,
-        BOOL,
-        STRING,
-    }
-
     /// <summary>
     /// 表格类型
     /// </summary>
@@ -69,6 +58,17 @@ namespace DataGenerate
 
         public List<ExcelTitle> unitTitles { set; get;}
 
+        public List<ExcelTitle> GetExcelTitles()
+        {
+            var titles = new List<ExcelTitle>();
+            foreach (var it in ExcelConfig.Instance.defaultTitles)
+            {
+                titles.Add(new ExcelTitle(it, it));
+            }
+            titles.AddRange(unitTitles);
+            return titles;
+        }
+
         protected override Type AfterFirstFieldLoadModify(Type srcFieldType, string section)
         {
             if (section == "items")
@@ -107,16 +107,15 @@ namespace DataGenerate
                     if (it.isList)
                     {
                         listSize = it.listSize;
-                        pre = it.name;
+                        pre = it.alias;
                     }
                     for (int itemIndex = 1; itemIndex <= listSize; ++itemIndex)
                     {
-                        if (it.isList)
-                            pre += itemIndex;
+                        var curTitle = it.isList ? pre + itemIndex : pre + it.alias;
                         if (TableLuaDefine.IsBaseType(it.type))
                         {
                             //基础类型
-                            var title = new ExcelTitle(pre+it.name, it.name + "_comment" );
+                            var title = new ExcelTitle(curTitle, curTitle + "_comment11111111" );
                             titles.Add(title);
                             continue;
                         }
@@ -127,7 +126,7 @@ namespace DataGenerate
                         //子类
                         foreach (var itTitle in tableUnit.unitTitles)
                         {
-                            var title = new ExcelTitle(pre + it.name + itTitle.title, itTitle.titleComment) { menus = itTitle.menus };
+                            var title = new ExcelTitle(curTitle + itTitle.title, itTitle.titleComment) { menus = itTitle.menus };
                             if (tableUnit.type == TAB_TYPE.ENUM)
                             {
                                 title.menus = itTitle.menus;

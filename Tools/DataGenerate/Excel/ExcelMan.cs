@@ -17,7 +17,7 @@ namespace DataGenerate
         /// <summary>
         /// 标题行索引
         /// </summary>
-        public const int TITLE_ROW = 2;
+        public const int TITLE_ROW = 1;
         public const uint color = 0xFFC0C0C0;
     }
     public class ExcelMan
@@ -26,26 +26,35 @@ namespace DataGenerate
 
         public void InitExcel(TableUnitConfig table, string path)
         {
-            var wb = File.Exists(path) ? new Workbook(path) : new Workbook();
+            Console.WriteLine(path + ":" + File.Exists(path));
+            Workbook wb = null;
+            if (File.Exists(path))
+            {
+                wb = new Workbook(path);
+            } else
+            {
+                wb = new Workbook();
+                wb.Worksheets[0].Name = table.alias;
+            }
 
             var st = wb.Worksheets[table.alias];
             if (st == null)
             {
                 st = wb.Worksheets.Add(table.alias);
             }
-            //冻结标题栏
-            st.FreezePanes(0, ExcelConfig.Instance.defaultTitles.Count, 0, 1);
             //标题栏样式
             var rowStyle = wb.CreateStyle();
             var colorValue = ExcelConst.color;
             rowStyle.ForegroundColor = Color.FromArgb((int)colorValue);
+            rowStyle.HorizontalAlignment = TextAlignmentType.Center;
+            rowStyle.IsTextWrapped = true;
 
+            st.Cells.SetRowHeight(ExcelConst.TITLE_ROW, ExcelConfig.Instance.titleHeight);
             var row = st.Cells.GetRow(ExcelConst.TITLE_ROW);
             //标题栏高度
-            row.Height = ExcelConfig.Instance.titleHeight;
+            //row.Height = ExcelConfig.Instance.titleHeight;
             row.ApplyStyle(rowStyle, new StyleFlag());
-
-            var sectionList = table.unitTitles;
+            var sectionList = table.GetExcelTitles();
             //重新生成 每一列的下拉菜单
             st.Validations.Clear();
             st.Comments.Clear();
@@ -70,6 +79,7 @@ namespace DataGenerate
                     //原来的配置中没有找着，插入新的一列
                     st.Cells.InsertColumn(i);
                     st.Cells[ExcelConst.TITLE_ROW, i].Value = titleInfo.title;
+                    st.Cells[ExcelConst.TITLE_ROW, i].SetStyle(rowStyle);
                 }
 
                 //下拉菜单
@@ -85,6 +95,8 @@ namespace DataGenerate
                     comment.Note = titleInfo.titleComment;
                 }
             }
+            //冻结标题栏
+            st.FreezePanes(ExcelConst.TITLE_ROW + 1, ExcelConfig.Instance.defaultTitles.Count, ExcelConst.TITLE_ROW + 1, ExcelConfig.Instance.defaultTitles.Count);
             wb.Save(path);
             wb.Dispose();
         }
