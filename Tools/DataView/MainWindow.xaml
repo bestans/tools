@@ -7,18 +7,28 @@
         mc:Ignorable="d"
         Title="DataView" Width="1000" Height="600" VerticalAlignment="Top" SizeChanged="Window_SizeChanged" >
     <DockPanel Name="MyDock" LastChildFill="False" Margin="0,0,0,-4" SizeChanged="DockPanel_SizeChanged">
-        <DockPanel Width="225">
-            <DockPanel Height="28" DockPanel.Dock="Top">
-                <TextBox Name="SearchText" Width="100" HorizontalAlignment="Left" KeyDown="SearchText_KeyDown"/>
-                <ComboBox Name="SearchSelect" Width="75" HorizontalAlignment="Left" SelectedIndex="0">
-                    <ComboBoxItem>xxxxx</ComboBoxItem>
-                    <ComboBoxItem>yyyyy</ComboBoxItem>
-                    <ComboBoxItem>zzzzz</ComboBoxItem>
-                </ComboBox>
-                <Button Click="ButtonSearchClick" DockPanel.Dock="Top">Search</Button>
-            </DockPanel>
-            <TreeView Name="Mulu"/>
-        </DockPanel>
+
+        <TabControl Name="TabIndex" Width="225">
+            <TabItem Header="mulu" Width="112.5" HorizontalAlignment="Left" Height="26" >
+                <DockPanel>
+                    <TreeView Name="Mulu"/>
+                </DockPanel>
+            </TabItem>
+            <TabItem Header="sousuo" Width="105">
+                <DockPanel>
+                    <DockPanel Height="28" DockPanel.Dock="Top">
+                        <TextBox Name="SearchText" Width="90" HorizontalAlignment="Left" KeyDown="SearchText_KeyDown"/>
+                        <ComboBox Name="SearchSelect" Width="75" HorizontalAlignment="Left" SelectedIndex="0">
+                            <ComboBoxItem>xxxxx</ComboBoxItem>
+                            <ComboBoxItem>yyyyy</ComboBoxItem>
+                            <ComboBoxItem>zzzzz</ComboBoxItem>
+                        </ComboBox>
+                        <Button Click="ButtonSearchClick" DockPanel.Dock="Top">Search</Button>
+                    </DockPanel>
+                    <TreeView Name="SearchMulu"/>
+                </DockPanel>
+            </TabItem>
+        </TabControl>
         <TabControl Name="TabContent" Height="470" DockPanel.Dock="Top" SelectionChanged="TabContent_SelectionChanged">
         </TabControl>
     </DockPanel>

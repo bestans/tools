@@ -200,5 +200,10 @@ namespace DataView
                 win.Mulu.ItemsSource = itemList;
             }
         }
+
+        public void OnMuluItemSelected(object sender, RoutedEventArgs e)
+        {
+            win.SearchText.Text = ((TreeViewItem)(sender)).Header.ToString();
+        }
     }
 }
