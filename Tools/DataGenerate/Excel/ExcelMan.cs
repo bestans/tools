@@ -26,7 +26,6 @@ namespace DataGenerate
 
         public void InitExcel(TableUnitConfig table, string path)
         {
-            Console.WriteLine(path + ":" + File.Exists(path));
             Workbook wb = null;
             if (File.Exists(path))
             {
@@ -36,24 +35,13 @@ namespace DataGenerate
                 wb = new Workbook();
                 wb.Worksheets[0].Name = table.alias;
             }
-
+            Console.WriteLine("excel format:" + wb.FileFormat);
             var st = wb.Worksheets[table.alias];
             if (st == null)
             {
                 st = wb.Worksheets.Add(table.alias);
             }
-            //标题栏样式
-            var rowStyle = wb.CreateStyle();
-            var colorValue = ExcelConst.color;
-            rowStyle.ForegroundColor = Color.FromArgb((int)colorValue);
-            rowStyle.HorizontalAlignment = TextAlignmentType.Center;
-            rowStyle.IsTextWrapped = true;
 
-            st.Cells.SetRowHeight(ExcelConst.TITLE_ROW, ExcelConfig.Instance.titleHeight);
-            var row = st.Cells.GetRow(ExcelConst.TITLE_ROW);
-            //标题栏高度
-            //row.Height = ExcelConfig.Instance.titleHeight;
-            row.ApplyStyle(rowStyle, new StyleFlag());
             var sectionList = table.GetExcelTitles();
             //重新生成 每一列的下拉菜单
             st.Validations.Clear();
@@ -79,7 +67,6 @@ namespace DataGenerate
                     //原来的配置中没有找着，插入新的一列
                     st.Cells.InsertColumn(i);
                     st.Cells[ExcelConst.TITLE_ROW, i].Value = titleInfo.title;
-                    st.Cells[ExcelConst.TITLE_ROW, i].SetStyle(rowStyle);
                 }
 
                 //下拉菜单
@@ -87,32 +74,69 @@ namespace DataGenerate
                 {
                     AddCombobox(st, titleInfo.menus, i);
                 }
-                //tips
-                if (titleInfo.titleComment != null && titleInfo.titleComment.Length > 0)
-                {
-                    int commentIndex = st.Comments.Add(ExcelConst.TITLE_ROW, i);
-                    var comment = st.Comments[commentIndex];
-                    comment.Note = titleInfo.titleComment;
-                }
             }
             //冻结标题栏
             st.FreezePanes(ExcelConst.TITLE_ROW + 1, ExcelConfig.Instance.defaultTitles.Count, ExcelConst.TITLE_ROW + 1, ExcelConfig.Instance.defaultTitles.Count);
+
+            //列
+            var colStyle = wb.CreateStyle();
+            colStyle.Font.Size = 11;
+            for (int i = 0; i < sectionList.Count; ++i)
+            {
+                st.Cells.ApplyColumnStyle(i, colStyle, new StyleFlag() { All = true });
+                st.Cells.Columns[i].Width = 9.6;
+                var titleInfo = sectionList[i];
+                AddComment(wb, st, titleInfo, i);
+            }
+
+            {//标题栏
+                //标题栏高度
+                st.Cells.SetRowHeight(ExcelConst.TITLE_ROW, ExcelConfig.Instance.titleHeight);
+
+                //标题栏样式
+                var rowStyle = wb.CreateStyle();
+                var colorValue = ExcelConst.color;
+                rowStyle.ForegroundColor = Color.FromArgb((int)colorValue);
+                //rowStyle.ForegroundColor = Color.Red;
+                rowStyle.HorizontalAlignment = TextAlignmentType.Center;
+                rowStyle.IsTextWrapped = true;
+                rowStyle.Font.Size = 12;
+                //一定要设置 不然颜色不生效
+                rowStyle.Pattern = BackgroundType.Solid;
+                st.Cells.GetRow(ExcelConst.TITLE_ROW).ApplyStyle(rowStyle, new StyleFlag() { All = true, });
+            }
             wb.Save(path);
             wb.Dispose();
         }
 
+        private void AddComment(Workbook wb, Worksheet st, ExcelTitle title, int column)
+        {
+            var cell = st.Cells[ExcelConst.TITLE_ROW, column];
+            if (cell == null) return;
+
+            CellArea area = new CellArea();
+            area.StartRow = ExcelConst.TITLE_ROW;
+            area.EndRow = ExcelConst.TITLE_ROW;
+            area.StartColumn = column;
+            area.EndColumn = column;
+            int validationIndex = st.Validations.Add(area);
+            Validation validation = st.Validations[validationIndex];
+            validation.Type = (ValidationType.TextLength);
+            validation.InputMessage = title.titleComment;
+            validation.InputTitle = title.title;
+        }
         private void AddCombobox(Worksheet st, List<string> menus, int index)
         {
             CellArea area = new CellArea();
             area.StartRow = ExcelConst.TITLE_ROW + 1;
-            area.EndRow = st.Cells.MaxRow;
+            area.EndRow = st.Cells.MaxRow +1000;
             area.StartColumn = index;
             area.EndColumn = index;
             string strMenus = "";
             foreach (var it in menus)
             {
                 if (strMenus.Length > 0)
-                    strMenus += ";";
+                    strMenus += ",";
                 strMenus += it;
             }
             int validationIndex = st.Validations.Add(area);

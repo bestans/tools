@@ -21,7 +21,6 @@ namespace DataGenerate
         /// </summary>
         [LuaParam(policy = LuaParamPolicy.OPTIONAL)]
         public int listSize;
-        public string alias;
 
         protected override void AfterLoad()
         {

@@ -9,6 +9,19 @@ namespace DataGenerate
         static void Main(string[] args)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            try
+            {
+                Run(args);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Failed. ErrorInfo=" + e.Message);
+            }
+            Console.ReadKey();
+        }
+
+        static void Run(string[] args)
+        {
             TableLuaDefine.Instance.Init();
             TableLuaDefine.Instance.ToolGenerateExcel();
         }

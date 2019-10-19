@@ -7,9 +7,5 @@ namespace DataGenerate
 {
     public class EnumItemConfig : TableSection
     {
-        /// <summary>
-        /// 枚举别名
-        /// </summary>
-        public string alias;
     }
 }

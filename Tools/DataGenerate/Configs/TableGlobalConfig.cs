@@ -36,7 +36,7 @@ namespace DataGenerate
         /// <summary>
         /// 基础类型
         /// </summary>
-        public List<string> baseTypes;
+        public Dictionary<string, string> baseTypes;
 
         /// <summary>
         /// excel属性配置
@@ -49,6 +49,14 @@ namespace DataGenerate
         public string GetCommonConfigPath()
         {
             return tableLuaDefinePath + tableLuaCommonName;
+        }
+        public string GetBaseTypeDesc(string baseType)
+        {
+            if (baseTypes.TryGetValue(baseType, out string value))
+            {
+                return value;
+            }
+            return null;
         }
     }
 }

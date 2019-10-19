@@ -30,6 +30,10 @@ namespace DataGenerate
         /// 字段名称
         /// </summary>
         public string name;
+        /// <summary>
+        /// 枚举别名
+        /// </summary>
+        public string alias;
     }
 
     public class ExcelTitle
@@ -38,6 +42,11 @@ namespace DataGenerate
         public string titleComment;
         public List<string> menus;  //可为空
 
+        public ExcelTitle(string title)
+        {
+            this.title = title;
+            this.titleComment = string.Empty;
+        }
         public ExcelTitle(string title, string titleComment)
         {
             this.title = title;
@@ -112,10 +121,12 @@ namespace DataGenerate
                     for (int itemIndex = 1; itemIndex <= listSize; ++itemIndex)
                     {
                         var curTitle = it.isList ? pre + itemIndex : pre + it.alias;
-                        if (TableLuaDefine.IsBaseType(it.type))
+                        var baseTypeDesc = TableGlobalConfig.Instance.GetBaseTypeDesc(it.type);
+                        if (baseTypeDesc != null)
                         {
                             //基础类型
-                            var title = new ExcelTitle(curTitle, curTitle + "_comment11111111" );
+                            var title = new ExcelTitle(curTitle);
+                            title.titleComment += baseTypeDesc + TableLuaDefine.LINE_SEP;
                             titles.Add(title);
                             continue;
                         }
@@ -129,6 +140,7 @@ namespace DataGenerate
                             var title = new ExcelTitle(curTitle + itTitle.title, itTitle.titleComment) { menus = itTitle.menus };
                             if (tableUnit.type == TAB_TYPE.ENUM)
                             {
+                                title.title = curTitle;
                                 title.menus = itTitle.menus;
                             }
                             titles.Add(title);

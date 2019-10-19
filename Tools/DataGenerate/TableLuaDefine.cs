@@ -28,13 +28,14 @@ namespace DataGenerate
         //所有config定义map
         private Dictionary<string, TableConfig> allTableConfigMap = new Dictionary<string, TableConfig>();
 
-        private static readonly string LINE_SEP = "\n";
+        public static readonly string LINE_SEP = "\n";
         private static readonly string TAB_SEP = "	";
 
         public void Init()
         {
+            Console.Write(Directory.GetCurrentDirectory());
             //载入基础配置
-            LuaConfigs.LoadSingleConfig<TableGlobalConfig>("run_config/global.lua");
+            LuaConfigs.LoadSingleConfig<TableGlobalConfig>("run_config\\global.lua");
             //载入数据配置
             LuaConfigs.LoadSingleConfig<TableDataConfig>(TableGlobalConfig.Instance.dataConfigPath);
             //载入excel属性配置
@@ -87,7 +88,7 @@ namespace DataGenerate
 
         public static bool IsBaseType(string typeName)
         {
-            return TableGlobalConfig.Instance.baseTypes.IndexOf(typeName) >= 0;
+            return TableGlobalConfig.Instance.GetBaseTypeDesc(typeName) != null;
         }
 
         /// <summary>
@@ -121,16 +122,24 @@ namespace DataGenerate
                     //重复的表格名称
                     throw new Exception(string.Format("CheckTableConfig:duplicate table name({0});configName1={1},configName2={2}", it.name, tableConfig.configName, wrapConfig.configName));
                 }
-
+                //字段名
                 var tempSectionItemSet = new HashSet<string>();
+                //字段别名
+                var tempSectionAliasItemSet = new HashSet<string>();
                 foreach (TableSection sectionItem in it.items)
                 {
                     if (tempSectionItemSet.Contains(sectionItem.name))
                     {
                         //重复的字段名称
-                        throw new Exception(string.Format("CheckTableConfig:duplicate section name({0});table={1},tableConfig={2}", sectionItem.name, it.name, tableConfig.configName));
+                        throw new Exception(string.Format("CheckTableConfig:duplicate section name: section={0};table={1},tableConfig={2}", sectionItem.name, it.name, tableConfig.configName));
+                    }
+                    if (tempSectionAliasItemSet.Contains(sectionItem.alias))
+                    {
+                        //重复的字段alias
+                        throw new Exception(string.Format("CheckTableConfig:duplicate section alias: section={0};aliase={1};table={2},tableConfig={3}", sectionItem.name, sectionItem.alias, it.name, tableConfig.configName));
                     }
                     tempSectionItemSet.Add(sectionItem.name);
+                    tempSectionAliasItemSet.Add(sectionItem.alias);
                     if (it.type == TAB_TYPE.ENUM)
                     {
                         continue;
