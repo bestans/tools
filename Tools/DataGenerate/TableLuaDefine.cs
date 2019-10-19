@@ -198,7 +198,7 @@ namespace DataGenerate
             foreach (EnumItemConfig it in config.items)
             {
                 ss.Append(TAB_SEP).Append(config.name + "_" + it.name).Append(" = ").Append(index++)
-                    .Append(";").Append(TAB_SEP).Append("//").Append(it.alias).Append(TAB_SEP);
+                    .Append(";").Append(TAB_SEP).Append("//").Append(it.alias).Append(LINE_SEP);
             }
             ss.Append("}").Append(LINE_SEP);
         }
@@ -214,7 +214,7 @@ namespace DataGenerate
                     ss.Append("repeated ");
                 }
                 ss.Append(it.type).Append(" ").Append(it.name).Append(" = ").Append(index++)
-                    .Append(";").Append(TAB_SEP).Append("//").Append(it.alias).Append(TAB_SEP);
+                    .Append(";").Append(TAB_SEP).Append("//").Append(it.alias).Append(LINE_SEP);
             }
             ss.Append("}").Append(LINE_SEP);
         }

@@ -1,0 +1,13 @@
+enum ITEM_TYPE {
+	ITEM_TYPE_ITEM_TYPE_AA = 0;	//BB字段类型
+	ITEM_TYPE_ITEM_TYPE_BB = 1;	//AA字段类型
+	ITEM_TYPE_ITEM_TYPE_CC = 2;	//CC字段类型
+}
+message ItemAttr {
+	int32 attrId = 1;	//属性id
+	int32 attrValue = 2;	//属性值
+}
+message ItemBook {
+	repeated float itemFloat = 1;	//字段
+	ITEM_TYPE itemType = 2;	//物品类型222
+}
