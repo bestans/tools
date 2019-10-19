@@ -64,6 +64,7 @@ namespace DataView
                 var titem = new TreeViewItem() { Header = "item" + i, IsExpanded = false, Visibility = Visibility.Visible, FontSize= fontSize };
                 var son = new TreeViewItem() { Header = "item_sonsssssssssssssssssssssssssssssssssssss" + i, IsExpanded = false, FontSize = fontSize };
                 var son_son = new TreeViewItem() { Header = "xx_item_sonsssssssssssssssssssssssssssssssssssss" + i, IsExpanded = false, FontSize = fontSize };
+                son_son.Selected += tabCtrl.OnMuluItemSelected;
                 son.Items.Add(son_son);
                 titem.Items.Add(son);
                 itemList.Add(titem);
