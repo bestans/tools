@@ -105,6 +105,8 @@ namespace DataGenerate
                 rowStyle.Pattern = BackgroundType.Solid;
                 st.Cells.GetRow(ExcelConst.TITLE_ROW).ApplyStyle(rowStyle, new StyleFlag() { All = true, });
             }
+            //隐藏第一列（用来作交换数据的列）
+            st.Cells.Columns[0].IsHidden = true;
             wb.Save(path);
             wb.Dispose();
         }
