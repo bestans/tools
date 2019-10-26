@@ -9,14 +9,23 @@ using System.Windows.Data;
 
 namespace DataView
 {
+    public class BDataGridTextColumn : DataGridTextColumn
+    {
+        public int index;
+    }
     public class TabItemControl
     {
         public List<UCTabItemWithClose> leftTabs = new List<UCTabItemWithClose>();
         public List<UCTabItemWithClose> rightTabs = new List<UCTabItemWithClose>();
+
+        public List<UCTabItemWithClose> allTabls = new List<UCTabItemWithClose>();
+        //[leftIndex, rightIndex)
+        public int leftIndex = 0;
+        public int rightIndex = 0;
+        public int tabSelectIndex = 0;
+
         private TabControl m_Parent;
         private int SWITCH_COUNT = 0;
-        private bool isMainMulu = true;
-        private List<TreeViewItem> mainMulu;
 
         //数据页宽度
         public static int TABLE_MAX_WIDTH = 100;
@@ -29,14 +38,17 @@ namespace DataView
             m_Parent = parent;
             Init();
         }
+
         public static List<DataGridColumn> NewGridConfig()
         {
             var gridConfigs = new List<DataGridColumn>();
+            int count = 0;
             foreach (var it in MainConfig.Instance.dataGridColumns)
             {
-                var col = new DataGridTextColumn() { Header = it.title, Binding = new Binding(it.bindKey) };
+                count++;
+                var col = new BDataGridTextColumn() { Header = it.title, Binding = new Binding(it.bindKey), index = count - 1 };
                 col.IsReadOnly = true;
-                col.Width = MainConfig.Instance.dataGridWidth;
+                col.Width = count == 1 ? MainConfig.Instance.dataGridWidthIndex1 : MainConfig.Instance.dataGridWidth;
                 gridConfigs.Add(col);
             }
             return gridConfigs;
@@ -44,12 +56,29 @@ namespace DataView
         public void Init()
         {
             var gridConfigs = NewGridConfig();
-            TABLE_MAX_WIDTH = gridConfigs.Count * MainConfig.Instance.dataGridWidth + MainConfig.Instance.dataGridExtraMaxWidth;
+            TABLE_MAX_WIDTH = MainConfig.Instance.dataGridWidthIndex1;
+            TABLE_MAX_WIDTH += (gridConfigs.Count-1) * MainConfig.Instance.dataGridWidth + MainConfig.Instance.dataGridExtraMaxWidth;
         }
 
         public void AddItem(UCTabItemWithClose item)
         {
+            for (int i = 0; i < m_Parent.Items.Count; ++i)
+            {
+                if (item.data != null && item.data.SameItem(((UCTabItemWithClose)m_Parent.Items[i]).data))
+                {
+                    m_Parent.SelectedIndex = i;
+                    return;
+                }
+            }
+            for (int i = leftTabs.Count - 1; i >= 0; --i)
+            {
+                if (item.data != null && item.data.SameItem(leftTabs[i].data))
+                {
+                    return;
+                }
+            }
             m_Parent.Items.Insert(m_Parent.Items.Count - SWITCH_COUNT, item);
+            m_Parent.SelectedIndex = m_Parent.Items.Count - 1;
             RebuildItems();
             AjustTabSelect();
         }
@@ -60,6 +89,14 @@ namespace DataView
             if (item.itemType != TAB_ITEM.CONTENT) return;
 
             m_Parent.Items.Remove(item);
+            int index = allTabls.IndexOf(item);
+            if (index >= 0)
+            {
+                if (index < leftIndex)
+                    leftIndex--;
+                if (index < rightIndex)
+                    rightIndex--;
+            }
 
             RebuildItems();
             AjustTabSelect();
@@ -67,60 +104,54 @@ namespace DataView
 
         public void RightClick(object sender, RoutedEventArgs e)
         {
-            if (m_Parent.Items.Count <= 0) return;
-            if (leftTabs.Count <= 0) return;
             if (SWITCH_COUNT <= 0) return;
+            if (leftIndex <= 0) return;
+
+            leftIndex--;
+            rightIndex--;
 
             var removeIndex = m_Parent.Items.Count - SWITCH_COUNT - 1;
-            var removeItem = (UCTabItemWithClose)m_Parent.Items[removeIndex];
             m_Parent.Items.RemoveAt(removeIndex);
-            rightTabs.Insert(0, removeItem);
-
-            //左边的标签补充到开头
-            m_Parent.Items.Insert(0, (leftTabs[leftTabs.Count - 1]));
-            leftTabs.RemoveAt(leftTabs.Count - 1);
+            m_Parent.Items.Insert(0, allTabls[leftIndex]);
 
             AjustTabSelect();
         }
 
         public void LeftClick(object sender, RoutedEventArgs e)
         {
-            if (m_Parent.Items.Count <= 0) return;
-            if (rightTabs.Count <= 0) return;
             if (SWITCH_COUNT <= 0) return;
+            if (rightIndex >= allTabls.Count - 1) return;
 
-            var removeItem = (UCTabItemWithClose)m_Parent.Items[0];
+            leftIndex++;
+            rightIndex++;
+
             m_Parent.Items.RemoveAt(0);
-            leftTabs.Add(removeItem);
-
-            m_Parent.Items.Insert(m_Parent.Items.Count - SWITCH_COUNT, rightTabs[0]);
-            rightTabs.RemoveAt(0);
+            m_Parent.Items.Insert(m_Parent.Items.Count - SWITCH_COUNT, allTabls[rightIndex]);
 
             AjustTabSelect();
         }
         private void AjustTabSelect()
         {
+            if (tabSelectIndex < leftIndex)
+                tabSelectIndex = leftIndex;
+            if (tabSelectIndex > rightIndex)
+                tabSelectIndex = rightIndex;
+
             if (m_Parent.Items.Count <= 0) return;
-            var index = m_Parent.SelectedIndex;
-            if (index < 0)
-            {
-                m_Parent.SelectedIndex = 0;
-            }
-            else if (index >= m_Parent.Items.Count - SWITCH_COUNT)
-            {
-                m_Parent.SelectedIndex = m_Parent.Items.Count - SWITCH_COUNT - 1;
-            }
+            m_Parent.SelectedIndex = tabSelectIndex - leftIndex;
         }
 
         public void RebuildItems()
         {
+            if (m_Parent.Items.Count <= 0 || allTabls.Count <= 0 || leftIndex < 0) return;
+
             var tabMaxWidth = win.TabContent.ActualWidth;
             if (tabMaxWidth <= 10)
             {
                 return;
             }
             var criticalCount = (int)((tabMaxWidth - MainConfig.Instance.tableItemExtraWidth) / MainConfig.Instance.tableItemWidth);
-            if (m_Parent.Items.Count + leftTabs.Count + rightTabs.Count - SWITCH_COUNT > criticalCount)
+            if (allTabls.Count > criticalCount)
             {
                 if (SWITCH_COUNT <= 0)
                 {
@@ -140,31 +171,59 @@ namespace DataView
 
             criticalCount = (int)(tabMaxWidth - MainConfig.Instance.tableArrowItemWidth * SWITCH_COUNT - MainConfig.Instance.tableItemExtraWidth) / MainConfig.Instance.tableItemWidth;
             if (criticalCount <= 0)
-                criticalCount = 0;
+                criticalCount = 1;
+
+            if (tabSelectIndex < 0)
+                tabSelectIndex = 0;
+            if (tabSelectIndex < leftIndex)
+            {
+                for (int i = tabSelectIndex; i < leftIndex; ++i)
+                {
+                    m_Parent.Items.Insert(0, allTabls[i]);
+                }
+                leftIndex = tabSelectIndex;
+            }
+            if (tabSelectIndex >= rightIndex)
+            {
+                for (int i = rightIndex; i <= tabSelectIndex; ++i)
+                {
+                    m_Parent.Items.Insert(m_Parent.Items.Count - SWITCH_COUNT - 1, allTabls[i]);
+                }
+                rightIndex = tabSelectIndex + 1;
+            }
+
             if (m_Parent.Items.Count - SWITCH_COUNT > criticalCount)
             {
                 var removeCount = m_Parent.Items.Count - criticalCount - SWITCH_COUNT;
-                for (int i = 0; i < removeCount; ++i)
+
+                var leftAdd = Math.Min(removeCount, tabSelectIndex - leftIndex);
+                var rightDec = removeCount - leftAdd;
+                for (int i = 0; i < leftAdd; ++i)
                 {
-                    var removeItem = (UCTabItemWithClose)m_Parent.Items[0];
                     m_Parent.Items.RemoveAt(0);
-                    leftTabs.Add(removeItem);
                 }
+                for (int i = 0; i < rightDec; ++i)
+                {
+                    m_Parent.Items.RemoveAt(m_Parent.Items.Count - SWITCH_COUNT - 1);
+                }
+                leftIndex += leftAdd;
+                rightIndex -= rightDec;
             }
             else
             {
                 var maxRemoveCount = criticalCount + SWITCH_COUNT - m_Parent.Items.Count;
-                for (int i = leftTabs.Count - 1; i >= 0 && maxRemoveCount > 0; --i, --maxRemoveCount)
+                var leftDec = Math.Min(maxRemoveCount, leftIndex);
+                var rightAdd = Math.Min(maxRemoveCount - leftDec, allTabls.Count - rightIndex);
+                for (int i = leftIndex - 1; i >= leftIndex - leftDec; --i)
                 {
-                    m_Parent.Items.Insert(0, leftTabs[i]);
-                    leftTabs.RemoveAt(i);
+                    m_Parent.Items.Insert(0, allTabls[i]);
                 }
-
-                for (int i = 0; i < rightTabs.Count && maxRemoveCount > 0; --maxRemoveCount)
+                for (int i = rightIndex + 1; i < rightIndex + rightAdd; ++i)
                 {
-                    m_Parent.Items.Add(rightTabs[i]);
-                    rightTabs.RemoveAt(i);
+                    m_Parent.Items.Insert(m_Parent.Items.Count - SWITCH_COUNT, allTabls[i]);
                 }
+                leftIndex -= leftDec;
+                rightIndex += rightAdd;
             }
             AjustTabSelect();
         }
@@ -174,36 +233,23 @@ namespace DataView
         {
             if (text == null || text.Length == 0)
             {
-                if (!isMainMulu && mainMulu != null)
-                {
-                    win.Mulu.ItemsSource = mainMulu;
-                    isMainMulu = true;
-                }
+                return;
+            }
+            if (win.SearchSelect.SelectedIndex == 0)
+            {
+                SearchManager.Instance.Search(text);
             } else
             {
-                if (isMainMulu)
-                {
-                    mainMulu = (List<TreeViewItem>)win.Mulu.ItemsSource;
-                    isMainMulu = false;
-                }
 
-                var itemList = new List<TreeViewItem>();
-                for (int i = 0; i < 10; ++i)
-                {
-                    var titem = new TreeViewItem() { Header = "item" + i, IsExpanded = true, Visibility = Visibility.Visible, FontSize = MainConfig.Instance.muluFontSize };
-                    var son = new TreeViewItem() { Header = "item_sonsssssssssssssssssssssssssssssssssssss" + i, IsExpanded = true, FontSize = MainConfig.Instance.muluFontSize };
-                    var son_son = new TreeViewItem() { Header = "xx_item_sonsssssssssssssssssssssssssssssssssssss" + i, IsExpanded = true, FontSize = MainConfig.Instance.muluFontSize };
-                    son.Items.Add(son_son);
-                    titem.Items.Add(son);
-                    itemList.Add(titem);
-                }
-                win.Mulu.ItemsSource = itemList;
+                SearchManager.Instance.SearchText(text);
             }
         }
 
         public void OnMuluItemSelected(object sender, RoutedEventArgs e)
         {
-            win.SearchText.Text = ((TreeViewItem)(sender)).Header.ToString();
+            var tree = (BTreeView)(sender);
+
+            AddItem(UCTabItemWithClose.NewItem(tree.data));
         }
     }
 }

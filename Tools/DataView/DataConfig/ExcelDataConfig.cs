@@ -20,11 +20,11 @@ namespace DataGenerate
 
     public enum VIEW_DATA
     {
-        INDEX   = 0,        //序号
-        NAME    = 1,        //数据名
-        TYPE    = 2,        //数据类型
-        VALUE   = 3,        //数据值
-        COUNT   = 4,        //数量
+        INDEX = 0,        //序号
+        NAME = 1,        //数据名
+        TYPE = 2,        //数据类型
+        VALUE = 3,        //数据值
+        COUNT = 4,        //数量
     }
 
     public static class EnumEntens
@@ -83,7 +83,9 @@ namespace DataGenerate
         /// <summary>
         /// 条目数量
         /// </summary>
-        public int MaxTitleCount { get
+        public int MaxTitleCount
+        {
+            get
             {
                 return config.titles.Count;
             }
@@ -92,7 +94,7 @@ namespace DataGenerate
 
     public class ExcelDataItem
     {
-        ExcelDataConfig config;
+        public ExcelDataConfig config;
         public string header;
         public int id;
         public Dictionary<KeyValuePair<int, string>, ExcelDataItem> items;
@@ -105,6 +107,12 @@ namespace DataGenerate
             this.items = new Dictionary<KeyValuePair<int, string>, ExcelDataItem>();
         }
 
+        public bool SameItem(ExcelDataItem item)
+        {
+            if (item == null || item.config == null) return false;
+            if (this.config == null || id == 0) return false;
+            return item.config.idSpace == this.config.idSpace && item.header == this.header;
+        }
         public void AddItem(ExcelDataItem item)
         {
             items[new KeyValuePair<int, string>(item.id, item.header)] = item;
@@ -129,14 +137,18 @@ namespace DataGenerate
 
     public class ExcelDataConfig : BaseLuaConfig
     {
+        public static string HEADER_SIGN = "#";
+
         public string configAlias;
         public string tableAlias;
+        [LuaParam(policy = LuaParamPolicy.OPTIONAL)]
+        public string idSpace;
         [LuaParam(listShowIndexWhenWriteFile = true)]
         public List<ExcelDataTitleConfig> titles;
         [LuaParam(listWriteFileDataSizePerLine = 2)]
         public Dictionary<int, List<string>> data;
 
-        public ExcelDataConfig() {}
+        public ExcelDataConfig() { }
         public ExcelDataConfig(string alias, string configAlias)
         {
             this.configAlias = configAlias;
@@ -146,10 +158,10 @@ namespace DataGenerate
         }
 
         public ExcelDataItem itemDir { get; set; }
-        
+
         protected override void AfterLoad()
         {
-            itemDir = new ExcelDataItem(this, 0, configAlias);
+            itemDir = new ExcelDataItem(this, 0, tableAlias);
             var categoryStartIndex = (int)EXCEL_DATA.CATEGORY_START;
             var categoryEndIndex = ExcelConfig.Instance.defaultTitles.Count - 1;
             foreach (var entry in data)
@@ -157,7 +169,7 @@ namespace DataGenerate
                 var curItemDir = itemDir;
                 var lineData = entry.Value;
                 var id = entry.Key;
-                var itemName = id.ToString() + "_" + lineData[(int)EXCEL_DATA.NAME];
+                var itemName = lineData[(int)EXCEL_DATA.NAME] + HEADER_SIGN + id.ToString();
                 for (int i = categoryStartIndex; i <= categoryEndIndex && i < lineData.Count; ++i)
                 {
                     var category = lineData[i];
@@ -196,12 +208,13 @@ namespace DataGenerate
             }
             return string.Empty;
         }
+
         public ExcelDataItem Search(string id)
         {
             if (!int.TryParse(id, out int index)) return null;
             if (!data.TryGetValue(index, out List<string> dataList)) return null;
 
-            var header = id + "_" + dataList[(int)EXCEL_DATA.NAME];
+            var header = dataList[(int)EXCEL_DATA.NAME] + HEADER_SIGN + id;
             return new ExcelDataItem(this, index, header);
         }
 
@@ -222,7 +235,7 @@ namespace DataGenerate
                     }
                 }
                 if (!find) continue;
-                var header = entry.Key.ToString() + "_" + dataList[(int)EXCEL_DATA.NAME];
+                var header = dataList[(int)EXCEL_DATA.NAME] + HEADER_SIGN + entry.Key.ToString();
                 result.Add(new ExcelDataItem(this, entry.Key, header));
             }
             return result;

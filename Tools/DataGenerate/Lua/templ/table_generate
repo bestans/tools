@@ -1,0 +1,7 @@
+local config = {
+	tableList = {
+		"SkillDefine", "ItemBook", 
+	},
+}
+
+return config

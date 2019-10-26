@@ -1,0 +1,7 @@
+message SkillDefine {
+	repeated float section = 1;	//字段
+}
+enum SKILL_TYPE {
+	SKILL_TYPE_SKILL_TYPE_BB = 0;	//BB字段类型
+	SKILL_TYPE_SKILL_TYPE_AA = 1;	//AA字段类型
+}

@@ -13,6 +13,8 @@ namespace DataView
         public List<string> searchMenus;
         //数据列
         public List<GridColomnConfig> dataGridColumns;
+        //第一列数据列宽度
+        public int dataGridWidthIndex1;
         //数据列宽度
         public int dataGridWidth;
         //数据列最大宽度额外值
@@ -31,6 +33,8 @@ namespace DataView
         public int muluFontSize;
         //页签字体大小
         public int tableFontSize;
+        public string muluText;
+        public string searchText;
 
         public class GridColomnConfig : BaseLuaConfig
         {

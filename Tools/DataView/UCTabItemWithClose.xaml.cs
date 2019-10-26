@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DataGenerate;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -28,6 +29,7 @@ namespace DataView
     /// </summary>
     public partial class UCTabItemWithClose : TabItem
     {
+        public ExcelDataItem data;
         public UCTabItemWithClose(TAB_ITEM itemType)
         {
             this.itemType = itemType;
@@ -91,9 +93,34 @@ namespace DataView
             button.Style = this.FindResource(res) as Style;
         }
 
-        public static UCTabItemWithClose NewItem(TabItemContent content, TAB_ITEM itemType = TAB_ITEM.CONTENT)
+        public static UCTabItemWithClose OldNewItem(TabItemContent content, TAB_ITEM itemType = TAB_ITEM.CONTENT)
         {
+            return null;
+        }
+
+        public List<DataUnit> DataList
+        {
+            get
+            {
+                List<DataUnit> dataUnitList = new List<DataUnit>();
+                for (int i = 0; i < data.config.titles.Count; ++i)
+                {
+                    var dataInfo = data.GetDataInfo(i);
+                    var unit = new DataUnit();
+                    unit.ID = dataInfo[0];
+                    unit.Section = dataInfo[1];
+                    unit.TypeName = dataInfo[2];
+                    unit.Value = dataInfo[3];
+                    unit.dataInfo = dataInfo;
+                    dataUnitList.Add(unit);
+                }
+                return dataUnitList;
+            }
+        }
+        public static UCTabItemWithClose NewItem(ExcelDataItem content, TAB_ITEM itemType = TAB_ITEM.CONTENT)
+        { 
             UCTabItemWithClose item = new UCTabItemWithClose(itemType);
+            item.data = content;
             if (content != null)
             {
                 item.Header = content.header;
@@ -116,16 +143,6 @@ namespace DataView
             {
                 OnRightClick(data, sender, e);
             };
-            //data.SizeChanged += (object sender, SizeChangedEventArgs e) =>
-            //{
-            //    int width = 0;
-            //    foreach (var it in data.Columns)
-            //    {
-            //        width += (int)it.ActualWidth;
-            //    }
-            //    data.Width = width + 25;
-            //};
-            //data.AutoGeneratingColumn += DataGrid_AutoGeneratingColumn;
             data.ContextMenu = new ContextMenu();
             foreach (var it in TabItemControl.NewGridConfig())
             {
@@ -134,7 +151,7 @@ namespace DataView
             data.MaxWidth = TabItemControl.TABLE_MAX_WIDTH;
             if (content != null)
             {
-                data.ItemsSource = new ObservableCollection<DataUnit>(content.DataList);
+                data.ItemsSource = new ObservableCollection<DataUnit>(item.DataList);
             }
             Grid grid = new Grid();
             grid.Children.Add(data);
@@ -158,13 +175,27 @@ namespace DataView
             {
                 return;
             }
+            var index = ((BDataGridTextColumn)grid.SelectedCells[0].Column).index;
             grid.ContextMenu.Items.Clear();
             {//复制
                 var menuItem = new MenuItem();
                 menuItem.Header = "复制到剪贴板";
                 menuItem.Click += (object newSender, RoutedEventArgs newE) =>
                 {
-                    Clipboard.SetText(data.content);
+                    Clipboard.SetText(data.dataInfo[index]);
+                };
+                grid.ContextMenu.Items.Add(menuItem);
+            }
+            if (index != VIEW_DATA.VALUE.ToInt()) return;
+
+            var retList = SearchManager.Instance.RawSearch(data.dataInfo[index]);
+            foreach (var it in retList)
+            {
+                var menuItem = new MenuItem();
+                menuItem.Header = it.header;
+                menuItem.Click += (object newSender, RoutedEventArgs newE) =>
+                {
+                    MainWindow.tabCtrl.AddItem(UCTabItemWithClose.NewItem(it));
                 };
                 grid.ContextMenu.Items.Add(menuItem);
             }

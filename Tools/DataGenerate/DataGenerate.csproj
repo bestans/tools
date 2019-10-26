@@ -3,12 +3,12 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <ApplicationIcon />
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <StartupObject />
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="bestan-lua" Version="4.0.2" />
+    <PackageReference Include="bestan-lua" Version="4.0.8" />
     <PackageReference Include="System.Drawing.Common" Version="4.5.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="4.4.0" />
   </ItemGroup>

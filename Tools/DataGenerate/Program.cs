@@ -25,6 +25,7 @@ namespace DataGenerate
             TableLuaDefine.Instance.Init();
             TableLuaDefine.Instance.ToolGenerateExcel();
             TableLuaDefine.Instance.ToolGenerateProto();
+            TableLuaDefine.Instance.ToolGenerateTemplData();
         }
     }
 }

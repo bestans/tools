@@ -30,12 +30,13 @@ namespace DataGenerate
             if (File.Exists(path))
             {
                 wb = new Workbook(path);
-            } else
+            }
+            else
             {
                 wb = new Workbook();
                 wb.Worksheets[0].Name = table.alias;
             }
-            Console.WriteLine("excel format:" + wb.FileFormat);
+            //Console.WriteLine("excel format:" + wb.FileFormat);
             var st = wb.Worksheets[table.alias];
             if (st == null)
             {
@@ -49,6 +50,7 @@ namespace DataGenerate
             for (int i = 0; i < sectionList.Count; ++i)
             {
                 var titleInfo = sectionList[i];
+                var colIndex = i + 1;
                 bool find = false;
                 for (int titleIndex = 0; titleIndex <= st.Cells.MaxDataColumn; ++titleIndex)
                 {
@@ -58,21 +60,21 @@ namespace DataGenerate
                     if (title.Length <= 0) continue;
                     if (title == titleInfo.title)
                     {
-                        SwitchColomn(st, i, titleIndex);
+                        SwitchColomn(st, colIndex, titleIndex);
                         find = true;
                     }
                 }
                 if (!find)
                 {
                     //原来的配置中没有找着，插入新的一列
-                    st.Cells.InsertColumn(i);
-                    st.Cells[ExcelConst.TITLE_ROW, i].Value = titleInfo.title;
+                    st.Cells.InsertColumn(colIndex);
+                    st.Cells[ExcelConst.TITLE_ROW, colIndex].Value = titleInfo.title;
                 }
 
                 //下拉菜单
                 if (titleInfo.menus != null && titleInfo.menus.Count > 0)
                 {
-                    AddCombobox(st, titleInfo.menus, i);
+                    AddCombobox(st, titleInfo.menus, colIndex);
                 }
             }
             //冻结标题栏
@@ -106,7 +108,7 @@ namespace DataGenerate
                 st.Cells.GetRow(ExcelConst.TITLE_ROW).ApplyStyle(rowStyle, new StyleFlag() { All = true, });
             }
             //隐藏第一列（用来作交换数据的列）
-            st.Cells.Columns[0].IsHidden = true;
+            //st.Cells.Columns[0].IsHidden = true;
             wb.Save(path);
             wb.Dispose();
         }
@@ -131,7 +133,7 @@ namespace DataGenerate
         {
             CellArea area = new CellArea();
             area.StartRow = ExcelConst.TITLE_ROW + 1;
-            area.EndRow = st.Cells.MaxRow +1000;
+            area.EndRow = st.Cells.MaxRow + 1000;
             area.StartColumn = index;
             area.EndColumn = index;
             string strMenus = "";
@@ -178,6 +180,68 @@ namespace DataGenerate
 
             st.Cells.CopyColumn(st.Cells, colIndex2, colIndex1);
             st.Cells.CopyColumn(st.Cells, 0, colIndex2);
+        }
+
+        public void ReadExcel2Templ(TableUnitConfig table, string path, string configAlias)
+        {
+            Workbook wb;
+            try
+            {
+                wb = new Workbook(path);
+            }
+            catch (Exception e)
+            {
+                throw new DataException(ERROR_CODE.OPEN_EXCEL_FAILED_WHEN_READ_EXCEL, string.Format("excel read failed:alias={0},path={1},error={2}", table.alias, path, e.Message));
+            }
+            var st = wb.Worksheets[table.alias];
+            if (st == null)
+            {
+                throw new DataException(ERROR_CODE.LACK_EXCEL_SHEET, string.Format("excel do not have {0} sheet,path={1}", table.alias, path));
+            }
+            var sectionList = table.GetExcelTitles();
+            if (sectionList.Count <= ExcelConfig.Instance.defaultTitles.Count)
+            {
+                throw new DataException(ERROR_CODE.EXCEL_TITLES_NO_DATA, string.Format("excel titles no data:alias={0},path={1}", table.alias, path));
+            }
+            var data = new ExcelDataConfig(table.alias, configAlias);
+            for (int i = 0; i < sectionList.Count; ++i)
+            {
+                var colIndex = i + 1;
+                var section = sectionList[i];
+                var cell = st.Cells[ExcelConst.TITLE_ROW, colIndex];
+                if (cell == null || cell.Value.ToString() != section.title)
+                {
+                    throw new DataException(ERROR_CODE.EXCEL_TITLE_NOT_MATCH_DEFINE, string.Format("excel title not match define:alias={0},path={1},columnIndex={2}", table.alias, path, colIndex + 1));
+                }
+                //加入标题信息
+                data.titles.Add(new ExcelDataTitleConfig() { alias = section.title, type = section.typeAlias });
+            }
+            for (int row = ExcelConst.TITLE_ROW + 1; row < st.Cells.MaxDataRow; ++row)
+            {
+                var idCell = st.Cells[row, 1];
+                if (idCell == null || !int.TryParse(idCell.Value.ToString(), out int id))
+                {
+                    throw new DataException(ERROR_CODE.EXCEL_DATA_ID_INVALID, string.Format("excel id invalid:alias={0},path={1},rowIndex={2}", table.alias, path, row + 1));
+                }
+                var lineData = new List<string>();
+                for (int col = 0; col < sectionList.Count; ++col)
+                {
+                    var realCol = col + 1;
+                    var cell = st.Cells[row, realCol];
+                    var cellValue = cell == null ? string.Empty : cell.Value.ToString();
+                    lineData.Add(cellValue);
+                }
+                data.data[id] = lineData;
+            }
+            string templInfoPath = TableGlobalConfig.Instance.tableTemplDataPath + table.name + ".lua";
+            try
+            {
+                data.WriteToFile(templInfoPath);
+            }
+            catch (Exception e)
+            {
+                throw new DataException(ERROR_CODE.EXCEL_INFO_WRITE_TO_FILE_FAILED, string.Format("excel info write to tempinfo file failed:alias={0},path={1},templInfoPath={2},error=[{3}]", table.alias, path, templInfoPath, e.Message));
+            }
         }
     }
 }

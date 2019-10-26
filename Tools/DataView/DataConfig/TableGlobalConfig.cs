@@ -54,6 +54,7 @@ namespace DataGenerate
         /// excel属性配置
         /// </summary>
         public string excelPropConfigPath;
+
         /// <summary>
         /// 获取common配置路径
         /// </summary>

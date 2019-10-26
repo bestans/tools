@@ -33,7 +33,7 @@ namespace DataGenerate
 
         public void Init()
         {
-            Console.Write(Directory.GetCurrentDirectory());
+            //Console.Write(Directory.GetCurrentDirectory());
             //载入基础配置
             LuaConfigs.LoadSingleConfig<TableGlobalConfig>("run_config\\global.lua");
             //载入数据配置
@@ -217,6 +217,26 @@ namespace DataGenerate
                     .Append(";").Append(TAB_SEP).Append("//").Append(it.alias).Append(LINE_SEP);
             }
             ss.Append("}").Append(LINE_SEP);
+        }
+
+        public void ToolGenerateTemplData()
+        {
+            var tableGenerate = new TableGenerateConfig();
+            tableGenerate.tableList = new List<string>();
+            foreach (var it in allTableConfigMap)
+            {
+                string dir = TableGlobalConfig.Instance.tableExcelRootPath + "\\" + it.Value.configAlias;
+                foreach (var table in it.Value.tables)
+                {
+                    if (table.type != TAB_TYPE.TABLE)
+                        continue;
+
+                    string path = dir + "\\" + table.alias + ".xlsx";
+                    ExcelMan.Instance.ReadExcel2Templ(table, path, it.Value.configAlias);
+                    tableGenerate.tableList.Add(table.name);
+                }
+            }
+            tableGenerate.WriteToFile(TableGlobalConfig.Instance.tableTemplDataPath + TableGlobalConfig.Instance.tableGenerateConfigName);
         }
     }
 }

@@ -41,16 +41,19 @@ namespace DataGenerate
         public string title;
         public string titleComment;
         public List<string> menus;  //可为空
+        public string typeAlias;
 
-        public ExcelTitle(string title)
+        public ExcelTitle(string title, string type)
         {
             this.title = title;
             this.titleComment = string.Empty;
+            this.typeAlias = TableGlobalConfig.Instance.GetBaseTypeDesc(type) ?? string.Empty;
         }
-        public ExcelTitle(string title, string titleComment)
+        public ExcelTitle(string title, string type, string titleComment)
         {
             this.title = title;
             this.titleComment = titleComment;
+            this.typeAlias = TableGlobalConfig.Instance.GetBaseTypeDesc(type) ?? string.Empty;
         }
     }
 
@@ -72,7 +75,7 @@ namespace DataGenerate
             var titles = new List<ExcelTitle>();
             foreach (var it in ExcelConfig.Instance.defaultTitles)
             {
-                titles.Add(new ExcelTitle(it, it));
+                titles.Add(new ExcelTitle(it.title, it.type, it.title));
             }
             titles.AddRange(unitTitles);
             return titles;
@@ -106,7 +109,7 @@ namespace DataGenerate
                 {
                     menus.Add(it.alias);
                 }
-                var title = new ExcelTitle(alias, alias + "_enum_comment") { menus = menus };
+                var title = new ExcelTitle(alias, TableGlobalConfig.Instance.enumTypeDesc, alias + "_enum_comment") { menus = menus };
                 titles.Add(title);
             } else {
                 foreach (BeanItemConfig it in items)
@@ -125,7 +128,7 @@ namespace DataGenerate
                         if (baseTypeDesc != null)
                         {
                             //基础类型
-                            var title = new ExcelTitle(curTitle);
+                            var title = new ExcelTitle(curTitle, it.type);
                             title.titleComment += baseTypeDesc + TableLuaDefine.LINE_SEP;
                             titles.Add(title);
                             continue;
@@ -137,7 +140,7 @@ namespace DataGenerate
                         //子类
                         foreach (var itTitle in tableUnit.unitTitles)
                         {
-                            var title = new ExcelTitle(curTitle + itTitle.title, itTitle.titleComment) { menus = itTitle.menus };
+                            var title = new ExcelTitle(curTitle + itTitle.title, itTitle.typeAlias, itTitle.titleComment) { menus = itTitle.menus };
                             if (tableUnit.type == TAB_TYPE.ENUM)
                             {
                                 title.title = curTitle;
