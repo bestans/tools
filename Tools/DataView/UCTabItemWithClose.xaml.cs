@@ -133,7 +133,7 @@ namespace DataView
             //不能主动添加行
             data.CanUserAddRows = false;
             //不能排序
-            data.CanUserSortColumns = false;
+            data.CanUserSortColumns = false;                                                                                               
             //单元格选中
             data.SelectionUnit = DataGridSelectionUnit.Cell;
             //单元格单选
@@ -168,6 +168,11 @@ namespace DataView
             return item;
         }
 
+        protected override void OnSelected(RoutedEventArgs e)
+        {
+            base.OnSelected(e);
+            MainWindow.tabCtrl.OnSelect(this);
+        }
         private static void OnRightClick(DataGrid grid, object sender, SelectedCellsChangedEventArgs e)
         {
             var data = ((DataUnit)(grid.SelectedCells[0].Item));
@@ -191,11 +196,12 @@ namespace DataView
             var retList = SearchManager.Instance.RawSearch(data.dataInfo[index]);
             foreach (var it in retList)
             {
+                var tempIt = it;
                 var menuItem = new MenuItem();
-                menuItem.Header = it.header;
+                menuItem.Header = tempIt.header;
                 menuItem.Click += (object newSender, RoutedEventArgs newE) =>
                 {
-                    MainWindow.tabCtrl.AddItem(UCTabItemWithClose.NewItem(it));
+                    MainWindow.tabCtrl.AddItem(UCTabItemWithClose.NewItem(tempIt));
                 };
                 grid.ContextMenu.Items.Add(menuItem);
             }

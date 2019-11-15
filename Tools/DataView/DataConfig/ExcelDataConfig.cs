@@ -156,7 +156,10 @@ namespace DataGenerate
             this.titles = new List<ExcelDataTitleConfig>();
             this.data = new Dictionary<int, List<string>>();
         }
-
+        public static string GetHeader(string header, string id)
+        {
+            return id + HEADER_SIGN + header;
+        }
         public ExcelDataItem itemDir { get; set; }
 
         protected override void AfterLoad()
@@ -169,7 +172,7 @@ namespace DataGenerate
                 var curItemDir = itemDir;
                 var lineData = entry.Value;
                 var id = entry.Key;
-                var itemName = lineData[(int)EXCEL_DATA.NAME] + HEADER_SIGN + id.ToString();
+                var itemName = GetHeader(lineData[(int)EXCEL_DATA.NAME], id.ToString());
                 for (int i = categoryStartIndex; i <= categoryEndIndex && i < lineData.Count; ++i)
                 {
                     var category = lineData[i];
@@ -214,7 +217,7 @@ namespace DataGenerate
             if (!int.TryParse(id, out int index)) return null;
             if (!data.TryGetValue(index, out List<string> dataList)) return null;
 
-            var header = dataList[(int)EXCEL_DATA.NAME] + HEADER_SIGN + id;
+            var header = GetHeader(dataList[(int)EXCEL_DATA.NAME], id);
             return new ExcelDataItem(this, index, header);
         }
 
@@ -235,7 +238,7 @@ namespace DataGenerate
                     }
                 }
                 if (!find) continue;
-                var header = dataList[(int)EXCEL_DATA.NAME] + HEADER_SIGN + entry.Key.ToString();
+                var header = GetHeader(dataList[(int)EXCEL_DATA.NAME], entry.Key.ToString());
                 result.Add(new ExcelDataItem(this, entry.Key, header));
             }
             return result;

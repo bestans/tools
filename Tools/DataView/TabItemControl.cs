@@ -15,9 +15,6 @@ namespace DataView
     }
     public class TabItemControl
     {
-        public List<UCTabItemWithClose> leftTabs = new List<UCTabItemWithClose>();
-        public List<UCTabItemWithClose> rightTabs = new List<UCTabItemWithClose>();
-
         public List<UCTabItemWithClose> allTabls = new List<UCTabItemWithClose>();
         //[leftIndex, rightIndex)
         public int leftIndex = 0;
@@ -60,27 +57,34 @@ namespace DataView
             TABLE_MAX_WIDTH += (gridConfigs.Count-1) * MainConfig.Instance.dataGridWidth + MainConfig.Instance.dataGridExtraMaxWidth;
         }
 
-        public void AddItem(UCTabItemWithClose item)
+        public void OnSelect(UCTabItemWithClose item)
         {
-            for (int i = 0; i < m_Parent.Items.Count; ++i)
+            for (int i = 0; i < allTabls.Count; ++i)
             {
-                if (item.data != null && item.data.SameItem(((UCTabItemWithClose)m_Parent.Items[i]).data))
+                if (item.data != null && item.data.SameItem(allTabls[i].data))
                 {
-                    m_Parent.SelectedIndex = i;
+                    tabSelectIndex = i;
                     return;
                 }
             }
-            for (int i = leftTabs.Count - 1; i >= 0; --i)
+        }
+
+        public void AddItem(UCTabItemWithClose item)
+        {
+            for (int i = 0; i < allTabls.Count; ++i)
             {
-                if (item.data != null && item.data.SameItem(leftTabs[i].data))
+                if (item.data != null && item.data.SameItem(allTabls[i].data))
                 {
+                    tabSelectIndex = i;
+                    RebuildItems();
                     return;
                 }
             }
             m_Parent.Items.Insert(m_Parent.Items.Count - SWITCH_COUNT, item);
-            m_Parent.SelectedIndex = m_Parent.Items.Count - 1;
+            allTabls.Insert(rightIndex, item);
+            rightIndex++;
+            tabSelectIndex = rightIndex - 1;
             RebuildItems();
-            AjustTabSelect();
         }
 
         public void CloseClick(UCTabItemWithClose item)
@@ -92,14 +96,14 @@ namespace DataView
             int index = allTabls.IndexOf(item);
             if (index >= 0)
             {
+                allTabls.RemoveAt(index);
                 if (index < leftIndex)
                     leftIndex--;
                 if (index < rightIndex)
                     rightIndex--;
             }
-
-            RebuildItems();
             AjustTabSelect();
+            RebuildItems();
         }
 
         public void RightClick(object sender, RoutedEventArgs e)
@@ -134,8 +138,8 @@ namespace DataView
         {
             if (tabSelectIndex < leftIndex)
                 tabSelectIndex = leftIndex;
-            if (tabSelectIndex > rightIndex)
-                tabSelectIndex = rightIndex;
+            if (tabSelectIndex >= rightIndex)
+                tabSelectIndex = rightIndex - 1;
 
             if (m_Parent.Items.Count <= 0) return;
             m_Parent.SelectedIndex = tabSelectIndex - leftIndex;
@@ -173,30 +177,31 @@ namespace DataView
             if (criticalCount <= 0)
                 criticalCount = 1;
 
-            if (tabSelectIndex < 0)
-                tabSelectIndex = 0;
-            if (tabSelectIndex < leftIndex)
+            var curTabIndex = tabSelectIndex;
+            if (curTabIndex < 0)
+                curTabIndex = 0;
+            if (curTabIndex < leftIndex)
             {
-                for (int i = tabSelectIndex; i < leftIndex; ++i)
+                for (int i = leftIndex - 1; i >= curTabIndex; i--)
                 {
                     m_Parent.Items.Insert(0, allTabls[i]);
                 }
-                leftIndex = tabSelectIndex;
+                leftIndex = curTabIndex;
             }
-            if (tabSelectIndex >= rightIndex)
+            if (curTabIndex >= rightIndex)
             {
-                for (int i = rightIndex; i <= tabSelectIndex; ++i)
+                for (int i = rightIndex; i <= curTabIndex; ++i)
                 {
-                    m_Parent.Items.Insert(m_Parent.Items.Count - SWITCH_COUNT - 1, allTabls[i]);
+                    m_Parent.Items.Insert(m_Parent.Items.Count - SWITCH_COUNT, allTabls[i]);
                 }
-                rightIndex = tabSelectIndex + 1;
+                rightIndex = curTabIndex + 1;
             }
 
             if (m_Parent.Items.Count - SWITCH_COUNT > criticalCount)
             {
                 var removeCount = m_Parent.Items.Count - criticalCount - SWITCH_COUNT;
 
-                var leftAdd = Math.Min(removeCount, tabSelectIndex - leftIndex);
+                var leftAdd = Math.Min(removeCount, curTabIndex - leftIndex);
                 var rightDec = removeCount - leftAdd;
                 for (int i = 0; i < leftAdd; ++i)
                 {
@@ -218,13 +223,14 @@ namespace DataView
                 {
                     m_Parent.Items.Insert(0, allTabls[i]);
                 }
-                for (int i = rightIndex + 1; i < rightIndex + rightAdd; ++i)
+                for (int i = rightIndex; i < rightIndex + rightAdd; ++i)
                 {
                     m_Parent.Items.Insert(m_Parent.Items.Count - SWITCH_COUNT, allTabls[i]);
                 }
                 leftIndex -= leftDec;
                 rightIndex += rightAdd;
             }
+            tabSelectIndex = curTabIndex;
             AjustTabSelect();
         }
 
